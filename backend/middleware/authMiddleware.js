@@ -1,30 +1,33 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel.js");
 const asyncHandler = require("express-async-handler");
-// const isTokenBlacklisted = require('./tokenMiddleware.js')
 
 const protect = asyncHandler(async (req, res, next) => {
-  const token = req.header("Authorization").replace("Bearer ", "");
-
-  // Check if token is blacklisted
-  // const blacklisted = await isTokenBlacklisted(token);
-  // console.log(blacklisted)
-  // if (blacklisted) {
-  //   return res
-  //     .status(401)
-  //     .json({ success: false, message: "Token is invalidated" });
-  // }
-  // Extract the deviceVerification from the request headers
-  const deviceVerificationHeader = req.header("deviceVerification");
-
   try {
-    // Verify the JWT token and decode it
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("decoded", decoded);
+    // Check if the Authorization header is provided and contains a token
+    const token = req.header("Authorization")
+      ? req.header("Authorization").replace("Bearer ", "")
+      : null;
 
-    // Check if deviceVerification from the token matches the one from the header
+    if (!token) {
+      return res
+        .status(401)
+        .json({ error: "Token missing. Please authenticate." });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Check if deviceVerification header is present
+    const deviceVerificationHeader = req.header("deviceVerification");
+    if (!deviceVerificationHeader) {
+      return res
+        .status(400)
+        .json({ error: "Device verification header is missing." });
+    }
+
+    // Compare deviceVerification from token and header
     if (decoded.deviceVerification !== deviceVerificationHeader) {
-       res
+      return res
         .status(401)
         .json({ error: "Unauthorized: Device verification mismatch." });
     }
@@ -34,18 +37,21 @@ const protect = asyncHandler(async (req, res, next) => {
 
     // If no user is found, throw an error
     if (!user) {
-      throw new Error("User not found");
+      return res.status(404).json({ error: "User not found." });
     }
 
-    // Attach the token and user information to the request object
+    // Attach token and user info to request object
     req.token = token;
     req.user = user;
 
     // Proceed to the next middleware or route handler
     next();
   } catch (error) {
+    // Catch any error related to token or authentication
     console.error("Authentication error:", error);
-    res.status(401).json({ error: "Please authenticate." });
+    return res
+      .status(401)
+      .json({ error: "Invalid token or authentication failed." });
   }
 });
 

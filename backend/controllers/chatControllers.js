@@ -20,7 +20,7 @@ const accessChat = asyncHandler(async (req, res) => {
       { users: { $elemMatch: { $eq: userId } } },
     ],
   })
-    .populate("users", "-password")
+    .populate("users", "-password -otp")
     .populate("latestMessage");
 
 
@@ -42,7 +42,7 @@ const accessChat = asyncHandler(async (req, res) => {
       const createdChat = await Chat.create(chatData);
       const FullChat = await Chat.findOne({ _id: createdChat._id }).populate(
         "users",
-        "-password"
+        "-password -otp"
       );
       res.status(200).json(FullChat);
     } catch (error) {
@@ -59,7 +59,7 @@ const fetchChats = asyncHandler(async (req, res) => {
   try {
     Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
       .populate("users", "-password")
-      .populate("groupAdmin", "-password")
+      .populate("groupAdmin", "-password -otp")
       .populate("latestMessage")
       .sort({ updatedAt: -1 })
       .then(async (results) => {
