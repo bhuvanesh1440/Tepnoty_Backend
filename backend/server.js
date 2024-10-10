@@ -4,6 +4,8 @@ const dotenv = require("dotenv")
 const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+// const problemRoutes = require("./routes/problemRoutes");
+
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const path = require("path");
 
@@ -20,6 +22,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
+// app.use("/api/problems", problemRoutes);
+
 
 // Error Handling middlewares
 app.use(notFound);

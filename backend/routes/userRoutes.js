@@ -1,28 +1,42 @@
 const express = require("express");
-const userController = require('../controllers/userControllers')
+const userDetailsController = require("../controllers/userDetailsController");
+const passwordController = require("../controllers/passwordController");
+const communityController = require("../controllers/communityController");
+const otpController = require("../controllers/otpController");
 const { protect } = require("../middleware/authMiddleware");
-const {verifyPhoneNumber} = require("../controllers/userControllers");
+const { use } = require("bcrypt/promises");
 
 const router = express.Router();
 
 
-router.post("/verify-phno", userController.verifyPhoneNumber); //working
-router.post("/signup", userController.signup); //working
-router.post("/login", userController.login); //working
-router.put("/reset-password", protect,userController.resetPassword); //working
-router.get("/refresh", userController.refresh); //working
+// verify user
+router.post("/verify-phno", userDetailsController.verifyPhoneNumber); //working
+router.post("/verify-userId", userDetailsController.verifyUserId); //working
+// User details routes
+router.post("/signup", userDetailsController.signup);
+router.get("/profile", protect, userDetailsController.getProfile);
+router.put("/profile/edit", protect, userDetailsController.editProfile);
+router.delete("/profile/delete", protect, userDetailsController.deleteProfile);
 
-router.get("/profile", protect, userController.getProfile);//working
-router.put("/profile/edit", protect, userController.editProfile);//working
-router.delete("/profile/delete", protect, userController.deleteProfile);//working
+router.get("/",protect, userDetailsController.allUsers);
 
-router.get("/",protect, userController.allUsers);
 
-// router.post("/feedback", protect, userController.reportFeedback); // Use the imported function
-// router.get("/get_feedback", protect, userController.getFeedback);
-// router.post("/reset-password/send-otp", userController.sendOtp); // Only authenticated users
-// router.post("/reset-password/verify-otp", userController.verifyOtp);
-// router.post("/reset-password/new-password", userController.resetPassword);
+// Password routes
+router.post("/login", passwordController.login);
+router.put("/reset-password", protect, passwordController.resetPassword); //working
+router.get("/refresh", passwordController.refresh); //working
 
+
+
+// Community routes
+router.post("/follow", protect, communityController.follow);
+router.post("/block", protect, communityController.blockUser);
+
+// OTP routes
+router.post("/send-otp", otpController.sendOtp);
+router.post("/verify-otp", otpController.verifyOtp);
 
 module.exports = router;
+
+
+

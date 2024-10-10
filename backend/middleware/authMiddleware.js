@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/userModel.js");
+const User = require("../models/userDetails");
 const asyncHandler = require("express-async-handler");
 
 const protect = asyncHandler(async (req, res, next) => {
@@ -33,7 +33,7 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 
     // Find the user based on the decoded user_id
-    const user = await User.findOne({ user_id: decoded.user_id });
+    const user = await User.findOne({ _id: decoded.user_id });
 
     // If no user is found, throw an error
     if (!user) {
