@@ -76,6 +76,7 @@ exports.signup = asyncHandler(async (req, res) => {
       name,
       gender,
       dob,
+      age,
       user_id,
       email,
       password,
@@ -103,6 +104,7 @@ exports.signup = asyncHandler(async (req, res) => {
       name,
       gender,
       dob,
+      age,
       user_id,
       email,
     });
@@ -127,6 +129,13 @@ exports.signup = asyncHandler(async (req, res) => {
     // Save the password
     await newPassword.save();
 
+    // Create a new community object for the user
+    const community = new Community({
+      user: user._id,
+    });
+
+    await community.save();
+
     // Successful registration response
     res
       .status(201)
@@ -137,20 +146,57 @@ exports.signup = asyncHandler(async (req, res) => {
   }
 });
 
+// isEmailVerified to true
+ exports.verifyEmail = asyncHandler(async (req, res) => {
+  const  userId  = req.user._id;
+  try {
+    // Find the user by userId
+    const user = await UserDetails.findOne({ _id: userId });
+
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({success:false, message: "User not found" });
+    }
+
+    // Check if the email is already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({success:false, message: "Email is already verified" });
+    }
+
+    // Update the isEmailVerified field to true
+    user.isEmailVerified = true;
+    await user.save();
+
+    // Send a successful response
+    res.status(200).json({
+      success:true,
+      message: "Email verified successfully",
+      
+    });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({success:false, message: "Server error", error: error.message });
+  }
+});
+
+
 
 
 
 // Get profile
 exports.getProfile = asyncHandler(async (req, res) => {
   const user = await UserDetails.findOne({ user_id: req.user.user_id });
-  res.status(200).json({
-    user_id: user.user_id,
-    name: user.name,
-    email: user.email,
-    phoneNumber: user.phoneNumber,
-    gender: user.gender,
-    dob: user.dob,
-  });
+  res.status(200).json(
+    user
+    // {
+    // user_id: user.user_id,
+    // name: user.name,
+    // email: user.email,
+    // phoneNumber: user.phoneNumber,
+    // gender: user.gender,
+    // dob: user.dob,
+  // }
+);
 });
 // Edit profile
 exports.editProfile = asyncHandler(async (req, res) => {
@@ -230,6 +276,79 @@ exports.deleteProfile = asyncHandler(async (req, res) => {
 
 
 
+const Community = require("../models/community");
+
+// Get Random Mutual Connections
+exports.getRandomMutualConnections = async (req, res) => {
+  try {
+    const { userId } = req.user._id; // User whose mutuals we are finding
+
+    // Find the community data of the user
+    const userCommunity = await Community.findOne({ _id: userId }).populate(
+      "connections.user"
+    );
+
+    if (!userCommunity) {
+      return res.status(404).json({ message: "User community not found" });
+    }
+
+    // Get the user's connections
+    const userConnections = userCommunity.connections
+      .filter((conn) => conn.status === "accepted")
+      .map((conn) => conn.user);
+
+    // Initialize an array to store mutuals
+    let mutualConnections = [];
+
+    // Loop through each connection and find their accepted connections
+    for (let connection of userConnections) {
+      const connectionCommunity = await Community.findOne({
+        user: connection._id,
+      }).populate("connections.user");
+
+      if (connectionCommunity) {
+        const connectionConnections = connectionCommunity.connections
+          .filter(
+            (conn) =>
+              conn.status === "accepted" && conn.user._id.toString() !== userId
+          )
+          .map((conn) => conn.user._id.toString());
+
+        // Check for mutuals - connections who are also connected with the user
+        const mutuals = connectionConnections.filter((connId) =>
+          userConnections.some((userConn) => userConn._id.toString() === connId)
+        );
+
+        mutualConnections.push(...mutuals);
+      }
+    }
+
+    // Remove duplicates
+    mutualConnections = [...new Set(mutualConnections)];
+
+    // Get random mutual connections (let's say we return 5)
+    const randomMutuals = mutualConnections
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 5);
+
+    // Populate the mutuals with user details
+    const randomMutualUsers = await UserDetails.find({
+      _id: { $in: randomMutuals },
+    });
+
+    res.status(200).json({
+      message: "Random mutual connections retrieved successfully",
+      mutuals: randomMutualUsers,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Error retrieving mutual connections",
+        error: error.message,
+      });
+  }
+};
 
 exports.allUsers = asyncHandler(async (req, res) => {
   console.log(req.query.search);

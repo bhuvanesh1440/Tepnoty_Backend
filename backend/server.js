@@ -4,8 +4,14 @@ const dotenv = require("dotenv")
 const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
-// const problemRoutes = require("./routes/problemRoutes");
+const feedbackRoutes = require('./routes/feedbackRoutes')
+const problemRoutes = require("./routes/problemRoutes");
+const interactRoutes = require('./routes/interactionRoutes')
+const communityRoutes = require('./routes/communityRoutes')
+const privacyPolicy = require('./routes/privacyPolicy')
+const termsAndConditions = require('./routes/termsAndConditions')
 
+const protect = require('./middleware/authMiddleware')
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const path = require("path");
 
@@ -22,9 +28,15 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
-// app.use("/api/problems", problemRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/problems", problemRoutes);
+app.use("/api/interact",interactRoutes)
+app.use("/api/community",communityRoutes)
 
 
+
+app.use("/api/privacy-policy",privacyPolicy)
+app.use('/api/trems-conditions',termsAndConditions)
 // Error Handling middlewares
 app.use(notFound);
 app.use(errorHandler);

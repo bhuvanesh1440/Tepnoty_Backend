@@ -5,6 +5,7 @@ const feedbackSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "UserDetails",
     required: true,
+    unique: true
   },
   description: String,
   // URL or path to the video file

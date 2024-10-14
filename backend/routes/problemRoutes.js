@@ -1,13 +1,23 @@
-// const express = require('express');
-// const { reportProblem, getProblems } = require('../controllers/problemController');
-// const authMiddleware = require('../middleware/authMiddleware');
+const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
+const {
+  createProblem,
+  getUserProblems,
+  deleteProblem,
+} = require("../controllers/problemController");
 
-// const router = express.Router();
+const router = express.Router();
 
-// // Route to report a problem (POST /report-problem/:user_id)
-// router.post('/report-problem', authMiddleware, reportProblem);
+// Create a new problem
+router.post("/report", protect, createProblem);
 
-// // Route to get problems for a specific user (GET /problems/:user_id)
-// router.get('/get_problems', authMiddleware, getProblems);
+// Get problems of all user
+router.get("/getAll", protect, getUserProblems);
 
-// module.exports = router;
+// Get problems of the logged-in user
+router.get("/", protect, getUserProblems);
+
+// Delete a problem
+router.delete("/:id", protect, deleteProblem);
+
+module.exports = router;

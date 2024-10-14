@@ -12,6 +12,7 @@ const router = express.Router();
 // verify user
 router.post("/verify-phno", userDetailsController.verifyPhoneNumber); //working
 router.post("/verify-userId", userDetailsController.verifyUserId); //working
+router.put("/verify-email",protect, userDetailsController.verifyEmail); //working
 // User details routes
 router.post("/signup", userDetailsController.signup);
 router.get("/profile", protect, userDetailsController.getProfile);
@@ -29,12 +30,11 @@ router.get("/refresh", passwordController.refresh); //working
 
 
 // Community routes
-router.post("/follow", protect, communityController.follow);
-router.post("/block", protect, communityController.blockUser);
+router.get('/get-mutuals',protect,userDetailsController.getRandomMutualConnections)
 
 // OTP routes
-router.post("/send-otp", otpController.sendOtp);
-router.post("/verify-otp", otpController.verifyOtp);
+router.post("/send-otp", otpController.generateOTP); // add the send sms functionality 
+router.post("/verify-otp", otpController.verifyOTP);
 
 module.exports = router;
 

@@ -7,7 +7,14 @@ const communitySchema = mongoose.Schema({
     required: true,
   },
   connections: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "UserDetails", default: [] },
+    {
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "UserDetails" },
+      status: {
+        type: String,
+        enum: ["pending", "accepted"],
+        default: "pending",
+      },
+    },
   ],
   followers: [
     { type: mongoose.Schema.Types.ObjectId, ref: "UserDetails", default: [] },
